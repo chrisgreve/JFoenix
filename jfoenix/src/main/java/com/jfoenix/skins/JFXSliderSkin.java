@@ -159,7 +159,11 @@ public class JFXSliderSkin extends SliderSkin {
         if (getSkinnable().getOrientation() != Orientation.HORIZONTAL) {
             horizontalRotation = -90;
         }
-        if (((JFXSlider) getSkinnable()).getIndicatorPosition() != IndicatorPosition.LEFT) {
+        IndicatorPosition indicatorPosition = ((JFXSlider)getSkinnable()).getIndicatorPosition();
+        if (indicatorPosition == IndicatorPosition.HIDDEN) {
+            animatedThumb.setVisible(false);
+        }
+        else if (indicatorPosition != IndicatorPosition.LEFT) {
             indicatorRotation = 180;
             shifting = -shifting;
         }

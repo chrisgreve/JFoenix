@@ -80,7 +80,7 @@ public class JFXSlider extends Slider {
     }
 
     public enum IndicatorPosition {
-        LEFT, RIGHT
+        LEFT, RIGHT, HIDDEN
     }
 
     /***************************************************************************
@@ -149,7 +149,7 @@ public class JFXSlider extends Slider {
 
     /**
      * indicates the position of the slider indicator, can be
-     * either LEFT or RIGHT
+     * either LEFT, RIGHT or HIDDEN
      */
     private StyleableObjectProperty<IndicatorPosition> indicatorPosition = new SimpleStyleableObjectProperty<>(
         StyleableProperties.INDICATOR_POSITION,
