@@ -15,8 +15,8 @@
                     <JFXSlider orientation="VERTICAL" styleClass="jfx-slider-style"
                                maxHeight="200">
                     </JFXSlider>
-                    <JFXSlider orientation="VERTICAL" prefHeight="200"
-                               disable="true">
+                    <JFXSlider orientation="VERTICAL" prefHeight="200" indicatorPosition="HIDDEN"
+                               disable="false">
                     </JFXSlider>
                 </children>
             </HBox>
