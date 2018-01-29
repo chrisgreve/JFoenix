@@ -26,7 +26,7 @@ import javafx.css.StyleConverter;
 import javafx.scene.text.Font;
 
 /**
- * Converts the CSS for -fx-indicator-position items into IndicatorPosition.
+ * Converts the CSS for -jfx-indicator-position items into IndicatorPosition.
  * it's used in JFXSlider.
  *
  * @author Shadi Shaheen
@@ -34,7 +34,7 @@ import javafx.scene.text.Font;
  * @since 2016-03-09
  */
 public class IndicatorPositionConverter extends StyleConverterImpl<String, IndicatorPosition> {
-    // lazy, thread-safe instatiation
+    // lazy, thread-safe instantiation
     private static class Holder {
         static final IndicatorPositionConverter INSTANCE = new IndicatorPositionConverter();
     }
