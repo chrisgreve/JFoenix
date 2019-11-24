@@ -19,9 +19,8 @@
 
 package com.jfoenix.controls;
 
-import com.jfoenix.concurrency.JFXUtilities;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
-import javafx.beans.binding.Bindings;
+import com.jfoenix.utils.JFXUtilities;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -122,9 +121,8 @@ public class RecursiveTreeItem<T extends RecursiveTreeObject<T>> extends TreeIte
 
     private void init(RecursiveTreeObject<T> value) {
 
-        if (value != null) {
-            addChildrenListener(value);
-        }
+        addChildrenListener(value);
+
         valueProperty().addListener(observable -> {
             if (getValue() != null) {
                 addChildrenListener(getValue());
@@ -183,6 +181,23 @@ public class RecursiveTreeItem<T extends RecursiveTreeObject<T>> extends TreeIte
 
         children.addListener((ListChangeListener<T>) change -> {
             while (change.next()) {
+                if (change.wasRemoved()) {
+                    List<TreeItem<T>> removedItems = new ArrayList<>();
+                    for (T t : change.getRemoved()) {
+                        final TreeItem<T> treeItem = itemsMap.remove(t);
+                        if (treeItem != null) {
+                            // remove the items from the current/original items list
+                            removedItems.add(treeItem);
+                        }
+                    }
+                    if (originalItems.size() == removedItems.size()) {
+                        originalItems.clear();
+                        getChildren().clear();
+                    } else {
+                        getChildren().removeAll(removedItems);
+                        originalItems.removeAll(removedItems);
+                    }
+                }
                 if (change.wasAdded()) {
                     List<RecursiveTreeItem<T>> addedItems = new ArrayList<>();
                     for (T newChild : change.getAddedSubList()) {
@@ -192,23 +207,6 @@ public class RecursiveTreeItem<T extends RecursiveTreeObject<T>> extends TreeIte
                     }
                     getChildren().addAll(addedItems);
                     originalItems.addAll(addedItems);
-                }
-                if (change.wasRemoved()) {
-                    List<TreeItem<T>> removedItems = new ArrayList<>();
-                    change.getRemoved().forEach(t -> {
-                        final TreeItem<T> treeItem = itemsMap.remove(t);
-                        if (treeItem != null) {
-                            // remove the items from the current/original items list
-                            removedItems.add(treeItem);
-                        }
-                    });
-                    if (originalItems.size() == removedItems.size()) {
-                        originalItems.clear();
-                        getChildren().clear();
-                    } else {
-                        getChildren().removeAll(removedItems);
-                        originalItems.removeAll(removedItems);
-                    }
                 }
             }
         });

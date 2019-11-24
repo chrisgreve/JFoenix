@@ -19,13 +19,13 @@
 
 package com.jfoenix.controls;
 
+import com.jfoenix.assets.JFoenixResources;
 import com.jfoenix.skins.JFXTabPaneSkin;
 import com.sun.javafx.css.converters.BooleanConverter;
 import javafx.css.CssMetaData;
 import javafx.css.SimpleStyleableBooleanProperty;
 import javafx.css.Styleable;
 import javafx.css.StyleableBooleanProperty;
-import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.MouseEvent;
@@ -37,6 +37,7 @@ import java.util.List;
 /**
  * JFXTabPane is the material design implementation of a tab pane.
  *
+ * TODO: REWORK SWITCH ANIMATION
  * @author Shadi Shaheen
  * @version 1.0
  * @since 2016-03-09
@@ -49,6 +50,7 @@ public class JFXTabPane extends TabPane {
      * this control.
      */
     private static final String DEFAULT_STYLE_CLASS = "jfx-tab-pane";
+    private static final String USER_AGENT_STYLESHEET = JFoenixResources.load("css/controls/jfx-tab-pane.css").toExternalForm();
 
     /**
      * {@inheritDoc}
@@ -67,6 +69,15 @@ public class JFXTabPane extends TabPane {
 
     private void initialize() {
         this.getStyleClass().setAll(DEFAULT_STYLE_CLASS);
+        this.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getUserAgentStylesheet() {
+        return USER_AGENT_STYLESHEET;
     }
 
     /**
@@ -118,7 +129,7 @@ public class JFXTabPane extends TabPane {
 
         static {
             final List<CssMetaData<? extends Styleable, ?>> styleables = new ArrayList<>(
-                Control.getClassCssMetaData());
+                TabPane.getClassCssMetaData());
             Collections.addAll(styleables, DISABLE_ANIMATION);
             CHILD_STYLEABLES = Collections.unmodifiableList(styleables);
         }
@@ -129,14 +140,7 @@ public class JFXTabPane extends TabPane {
 
     @Override
     public List<CssMetaData<? extends Styleable, ?>> getControlCssMetaData() {
-        if (STYLEABLES == null) {
-            final List<CssMetaData<? extends Styleable, ?>> styleables = new ArrayList<>(
-                Control.getClassCssMetaData());
-            styleables.addAll(getClassCssMetaData());
-            styleables.addAll(TabPane.getClassCssMetaData());
-            STYLEABLES = Collections.unmodifiableList(styleables);
-        }
-        return STYLEABLES;
+        return getClassCssMetaData();
     }
 
     public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {

@@ -19,6 +19,7 @@
 
 package com.jfoenix.controls;
 
+import com.jfoenix.assets.JFoenixResources;
 import com.jfoenix.svg.SVGGlyph;
 import com.jfoenix.utils.JFXNodeUtils;
 import com.sun.javafx.css.converters.SizeConverter;
@@ -137,7 +138,7 @@ public class JFXTreeViewPath extends ScrollPane {
      */
     @Override
     public String getUserAgentStylesheet() {
-        return getClass().getResource("/css/controls/jfx-tree-view-path.css").toExternalForm();
+        return JFoenixResources.load("css/controls/jfx-tree-view-path.css").toExternalForm();
     }
 
     @Override
@@ -259,26 +260,15 @@ public class JFXTreeViewPath extends ScrollPane {
 
         static {
             final List<CssMetaData<? extends Styleable, ?>> styleables =
-                new ArrayList<>(Control.getClassCssMetaData());
-            Collections.addAll(styleables,
-                OFFSET
-            );
+                new ArrayList<>(ScrollPane.getClassCssMetaData());
+            Collections.addAll(styleables, OFFSET);
             CHILD_STYLEABLES = Collections.unmodifiableList(styleables);
         }
     }
 
-    // inherit the styleable properties from parent
-    private List<CssMetaData<? extends Styleable, ?>> STYLEABLES;
-
     @Override
     public List<CssMetaData<? extends Styleable, ?>> getControlCssMetaData() {
-        if (STYLEABLES == null) {
-            final List<CssMetaData<? extends Styleable, ?>> styleables =
-                new ArrayList<>(ScrollPane.getClassCssMetaData());
-            styleables.addAll(getClassCssMetaData());
-            STYLEABLES = Collections.unmodifiableList(styleables);
-        }
-        return STYLEABLES;
+        return getClassCssMetaData();
     }
 
     public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {

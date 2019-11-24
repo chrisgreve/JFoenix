@@ -20,24 +20,45 @@
 package com.jfoenix.controls;
 
 import com.jfoenix.svg.SVGGlyph;
-import javafx.animation.*;
+import javafx.animation.Animation;
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.geometry.*;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.geometry.BoundingBox;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
@@ -68,7 +89,8 @@ public class JFXDecorator extends VBox {
     private StackPane contentPlaceHolder = new StackPane();
     private HBox buttonsContainer;
 
-    private ObjectProperty<Runnable> onCloseButtonAction = new SimpleObjectProperty<>(() -> primaryStage.close());
+    private ObjectProperty<Runnable> onCloseButtonAction = new SimpleObjectProperty<>(() ->
+        primaryStage.fireEvent(new WindowEvent(primaryStage, WindowEvent.WINDOW_CLOSE_REQUEST)));
 
     private BooleanProperty customMaximize = new SimpleBooleanProperty(false);
     private boolean maximized = false;
@@ -80,6 +102,7 @@ public class JFXDecorator extends VBox {
     protected JFXButton btnClose;
     protected JFXButton btnMin;
 
+    protected StringProperty title = new SimpleStringProperty();
     protected Text text;
     protected Node graphic;
     protected HBox graphicContainer;
@@ -127,8 +150,8 @@ public class JFXDecorator extends VBox {
                 contentPlaceHolder.getStyleClass().remove("resize-border");
                 /*
                  *  note the border property MUST NOT be bound to another property
-				 *  when going full screen mode, thus the binding will be lost if exisited
-				 */
+                 *  when going full screen mode, thus the binding will be lost if exisited
+                 */
                 contentPlaceHolder.borderProperty().unbind();
                 contentPlaceHolder.setBorder(Border.EMPTY);
                 if (windowDecoratorAnimation != null) {
@@ -174,7 +197,7 @@ public class JFXDecorator extends VBox {
             updateInitMouseValues(mouseEvent));
 
         // show the drag cursor on the borders
-        addEventFilter(MouseEvent.MOUSE_MOVED, (mouseEvent) -> showDragCursorOnTheborders(mouseEvent));
+        addEventFilter(MouseEvent.MOUSE_MOVED, (mouseEvent) -> showDragCursorOnBorders(mouseEvent));
 
 
         // handle drag events on the decorator pane
@@ -293,15 +316,9 @@ public class JFXDecorator extends VBox {
             CornerRadii.EMPTY,
             Insets.EMPTY)));
         // BINDING
-
         buttonsContainer.setPadding(new Insets(4));
         buttonsContainer.setAlignment(Pos.CENTER_RIGHT);
-        // maximize/restore the window on header double click
-        buttonsContainer.addEventHandler(MouseEvent.MOUSE_CLICKED, (mouseEvent) -> {
-            if (mouseEvent.getClickCount() == 2) {
-                btnMax.fire();
-            }
-        });
+
         // customize decorator buttons
         List<JFXButton> btns = new ArrayList<>();
         if (fullScreen) {
@@ -312,12 +329,20 @@ public class JFXDecorator extends VBox {
         }
         if (max) {
             btns.add(btnMax);
+            // maximize/restore the window on header double click
+            buttonsContainer.addEventHandler(MouseEvent.MOUSE_CLICKED, (mouseEvent) -> {
+                if (mouseEvent.getClickCount() == 2) {
+                    btnMax.fire();
+                }
+            });
         }
         btns.add(btnClose);
 
         text = new Text();
-        text.getStyleClass().addAll("jfx-decorator-text", "title");
+        text.getStyleClass().addAll("jfx-decorator-text", "title", "jfx-decorator-title");
         text.setFill(Color.WHITE);
+        text.textProperty().bind(title); //binds the Text's text to title
+        title.bind(primaryStage.titleProperty()); //binds title to the primaryStage's title
 
         graphicContainer = new HBox();
         graphicContainer.setPickOnBounds(false);
@@ -329,7 +354,7 @@ public class JFXDecorator extends VBox {
         graphicTextContainer.setAlignment(Pos.CENTER_LEFT);
         graphicTextContainer.setPickOnBounds(false);
         HBox.setHgrow(graphicTextContainer, Priority.ALWAYS);
-        HBox.setMargin(graphicContainer, new Insets(0, 8 , 0, 8));
+        HBox.setMargin(graphicContainer, new Insets(0, 8, 0, 8));
 
         buttonsContainer.getChildren().setAll(graphicTextContainer);
         buttonsContainer.getChildren().addAll(btns);
@@ -342,7 +367,8 @@ public class JFXDecorator extends VBox {
         buttonsContainer.setMinWidth(180);
         contentPlaceHolder.getStyleClass().add("jfx-decorator-content-container");
         contentPlaceHolder.setMinSize(0, 0);
-        contentPlaceHolder.getChildren().add(node);
+        StackPane clippedContainer = new StackPane(node);
+        contentPlaceHolder.getChildren().add(clippedContainer);
         ((Region) node).setMinSize(0, 0);
         VBox.setVgrow(contentPlaceHolder, Priority.ALWAYS);
         contentPlaceHolder.getStyleClass().add("resize-border");
@@ -353,13 +379,13 @@ public class JFXDecorator extends VBox {
         // BINDING
 
         Rectangle clip = new Rectangle();
-        clip.widthProperty().bind(((Region) node).widthProperty());
-        clip.heightProperty().bind(((Region) node).heightProperty());
-        node.setClip(clip);
+        clip.widthProperty().bind(clippedContainer.widthProperty());
+        clip.heightProperty().bind(clippedContainer.heightProperty());
+        clippedContainer.setClip(clip);
         this.getChildren().addAll(buttonsContainer, contentPlaceHolder);
     }
 
-    private void showDragCursorOnTheborders(MouseEvent mouseEvent) {
+    private void showDragCursorOnBorders(MouseEvent mouseEvent) {
         if (primaryStage.isMaximized() || primaryStage.isFullScreen() || maximized) {
             this.setCursor(Cursor.DEFAULT);
             return; // maximized mode does not support resize
@@ -369,10 +395,9 @@ public class JFXDecorator extends VBox {
         }
         double x = mouseEvent.getX();
         double y = mouseEvent.getY();
-        Bounds boundsInParent = this.getBoundsInParent();
         if (contentPlaceHolder.getBorder() != null && contentPlaceHolder.getBorder().getStrokes().size() > 0) {
             double borderWidth = contentPlaceHolder.snappedLeftInset();
-            if (isRightEdge(x, y, boundsInParent)) {
+            if (isRightEdge(x)) {
                 if (y < borderWidth) {
                     this.setCursor(Cursor.NE_RESIZE);
                 } else if (y > this.getHeight() - borderWidth) {
@@ -380,7 +405,7 @@ public class JFXDecorator extends VBox {
                 } else {
                     this.setCursor(Cursor.E_RESIZE);
                 }
-            } else if (isLeftEdge(x, y, boundsInParent)) {
+            } else if (isLeftEdge(x)) {
                 if (y < borderWidth) {
                     this.setCursor(Cursor.NW_RESIZE);
                 } else if (y > this.getHeight() - borderWidth) {
@@ -388,9 +413,9 @@ public class JFXDecorator extends VBox {
                 } else {
                     this.setCursor(Cursor.W_RESIZE);
                 }
-            } else if (isTopEdge(x, y, boundsInParent)) {
+            } else if (isTopEdge(y)) {
                 this.setCursor(Cursor.N_RESIZE);
-            } else if (isBottomEdge(x, y, boundsInParent)) {
+            } else if (isBottomEdge(y)) {
                 this.setCursor(Cursor.S_RESIZE);
             } else {
                 this.setCursor(Cursor.DEFAULT);
@@ -403,9 +428,9 @@ public class JFXDecorator extends VBox {
         if (!mouseEvent.isPrimaryButtonDown() || (xOffset == -1 && yOffset == -1)) {
             return;
         }
-            /*
-             * Long press generates drag event!
-			 */
+        /*
+         * Long press generates drag event!
+         */
         if (primaryStage.isFullScreen() || mouseEvent.isStillSincePress() || primaryStage.isMaximized() || maximized) {
             return;
         }
@@ -477,19 +502,21 @@ public class JFXDecorator extends VBox {
     }
 
 
-    private boolean isRightEdge(double x, double y, Bounds boundsInParent) {
-        return x < this.getWidth() && x > this.getWidth() - contentPlaceHolder.snappedLeftInset();
+    private boolean isRightEdge(double x) {
+        final double width = this.getWidth();
+        return x < width && x > width - contentPlaceHolder.snappedLeftInset();
     }
 
-    private boolean isTopEdge(double x, double y, Bounds boundsInParent) {
+    private boolean isTopEdge(double y) {
         return y >= 0 && y < contentPlaceHolder.snappedLeftInset();
     }
 
-    private boolean isBottomEdge(double x, double y, Bounds boundsInParent) {
-        return y < this.getHeight() && y > this.getHeight() - contentPlaceHolder.snappedLeftInset();
+    private boolean isBottomEdge(double y) {
+        final double height = this.getHeight();
+        return y < height && y > height - contentPlaceHolder.snappedLeftInset();
     }
 
-    private boolean isLeftEdge(double x, double y, Bounds boundsInParent) {
+    private boolean isLeftEdge(double x) {
         return x >= 0 && x < contentPlaceHolder.snappedLeftInset();
     }
 
@@ -577,16 +604,45 @@ public class JFXDecorator extends VBox {
      * will set the title
      *
      * @param text
+     * @deprecated Use {@link JFXDecorator#setTitle(java.lang.String)} instead.
      */
     public void setText(String text) {
-        this.text.setText(text);
+        setTitle(text);
     }
 
     /**
      * will get the title
+     *
+     * @deprecated Use {@link JFXDecorator#setTitle(java.lang.String)} instead.
      */
     public String getText() {
-        return text.getText();
+        return getTitle();
+    }
+
+    public String getTitle() {
+        return title.get();
+    }
+
+    /**
+     * By default this title property is bound to the primaryStage's title property.
+     * <p>
+     * To change it to something else, use <pre>
+     *     {@code jfxDecorator.titleProperty().unbind();}</pre> first.
+     */
+    public StringProperty titleProperty() {
+        return title;
+    }
+
+    /**
+     * If you want the {@code primaryStage}'s title and the {@code JFXDecorator}'s title to be different, then
+     * go ahead and use this method.
+     * <p>
+     * By default, this title property is bound to the {@code primaryStage}'s title property-so merely setting the
+     * {@code primaryStage}'s title, will set the {@code JFXDecorator}'s title.
+     */
+    public void setTitle(String title) {
+        this.title.unbind();
+        this.title.set(title);
     }
 
     public void setGraphic(Node node) {
@@ -599,7 +655,7 @@ public class JFXDecorator extends VBox {
         graphic = node;
     }
 
-    public Node getGraphic(Node node) {
+    public Node getGraphic() {
         return graphic;
     }
 }

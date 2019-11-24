@@ -21,7 +21,6 @@ package com.jfoenix.controls;
 
 import com.jfoenix.controls.cells.editors.base.JFXTreeTableCell;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
-import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
@@ -108,6 +107,7 @@ public class JFXTreeTableColumn<S, T> extends TreeTableColumn<S, T> {
                      && ((JFXTreeTableView<?>) param.getTreeTableView()).getGroupOrder().contains(this)
                      // make sure the node is a direct child to a group node
                      && param.getValue().getParent() != null
+                     && param.getValue().getParent().getValue() != null
                      && param.getValue().getParent().getValue().getClass() == RecursiveTreeObject.class
                  ));
     }

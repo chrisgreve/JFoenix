@@ -20,6 +20,7 @@
 package com.jfoenix.svg;
 
 import com.sun.javafx.css.converters.SizeConverter;
+import javafx.beans.NamedArg;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -27,8 +28,11 @@ import javafx.css.CssMetaData;
 import javafx.css.SimpleStyleableDoubleProperty;
 import javafx.css.Styleable;
 import javafx.css.StyleableDoubleProperty;
-import javafx.scene.Parent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.SVGPath;
@@ -54,13 +58,18 @@ public class SVGGlyph extends Pane {
     private double widthHeightRatio = 1;
     private ObjectProperty<Paint> fill = new SimpleObjectProperty<>();
 
-    public SVGGlyph(String svgPathContent) {
+    public SVGGlyph() {
+        this(null);
+    }
+
+    public SVGGlyph(@NamedArg("svgPathContent") String svgPathContent) {
         this(-1, "UNNAMED", svgPathContent, Color.BLACK);
     }
 
-    public SVGGlyph(String svgPathContent, Paint fill) {
+    public SVGGlyph(@NamedArg("svgPathContent") String svgPathContent, @NamedArg("fill") Paint fill) {
         this(-1, "UNNAMED", svgPathContent, fill);
     }
+
     /**
      * Constructs SVGGlyph node for a specified svg content and color
      * <b>Note:</b> name and glyphId is not needed when creating a single SVG image,
@@ -80,19 +89,21 @@ public class SVGGlyph extends Pane {
 
         shapeProperty().addListener(observable -> {
             Shape shape = getShape();
-            if(getShape()!=null){
-                widthHeightRatio = shape.prefWidth(-1)/ shape.prefHeight(-1);
-                if(getSize() != Region.USE_COMPUTED_SIZE){
+            if (getShape() != null) {
+                widthHeightRatio = shape.prefWidth(-1) / shape.prefHeight(-1);
+                if (getSize() != Region.USE_COMPUTED_SIZE) {
                     setSizeRatio(getSize());
                 }
             }
         });
 
-        SVGPath shape = new SVGPath();
-        shape.setContent(svgPathContent);
-        setShape(shape);
+        if (svgPathContent != null && !svgPathContent.isEmpty()) {
+            SVGPath shape = new SVGPath();
+            shape.setContent(svgPathContent);
+            setShape(shape);
+            setFill(fill);
+        }
 
-        setFill(fill);
         setPrefSize(DEFAULT_PREF_SIZE, DEFAULT_PREF_SIZE);
     }
 
@@ -142,14 +153,14 @@ public class SVGGlyph extends Pane {
      *
      * @param size in pixel
      */
-    private void setSizeRatio(double size){
+    private void setSizeRatio(double size) {
         double width = widthHeightRatio * size;
         double height = size / widthHeightRatio;
-        if(width <= size){
-            setSize(width , size);
-        }else if(height <= size){
+        if (width <= size) {
+            setSize(width, size);
+        } else if (height <= size) {
             setSize(size, height);
-        }else{
+        } else {
             setSize(size, size);
         }
     }
@@ -159,9 +170,9 @@ public class SVGGlyph extends Pane {
      *
      * @param width in pixel
      */
-    public void setSizeForWidth(double width){
+    public void setSizeForWidth(double width) {
         double height = width / widthHeightRatio;
-        setSize(width , height);
+        setSize(width, height);
     }
 
     /**
@@ -169,9 +180,9 @@ public class SVGGlyph extends Pane {
      *
      * @param height in pixel
      */
-    public void setSizeForHeight(double height){
+    public void setSizeForHeight(double height) {
         double width = height * widthHeightRatio;
-        setSize(width , height);
+        setSize(width, height);
     }
 
     /**
@@ -180,7 +191,7 @@ public class SVGGlyph extends Pane {
     private StyleableDoubleProperty size = new SimpleStyleableDoubleProperty(StyleableProperties.SIZE,
         SVGGlyph.this,
         "size",
-        Region.USE_COMPUTED_SIZE){
+        Region.USE_COMPUTED_SIZE) {
         @Override
         public void invalidated() {
             setSizeRatio(getSize());
@@ -218,7 +229,7 @@ public class SVGGlyph extends Pane {
 
         static {
             final List<CssMetaData<? extends Styleable, ?>> styleables =
-                new ArrayList<>(Parent.getClassCssMetaData());
+                new ArrayList<>(Pane.getClassCssMetaData());
             Collections.addAll(styleables,
                 SIZE
             );
@@ -226,18 +237,9 @@ public class SVGGlyph extends Pane {
         }
     }
 
-    // inherit the styleable properties from parent
-    private List<CssMetaData<? extends Styleable, ?>> STYLEABLES;
-
     @Override
     public List<CssMetaData<? extends Styleable, ?>> getCssMetaData() {
-        if (STYLEABLES == null) {
-            final List<CssMetaData<? extends Styleable, ?>> styleables =
-                new ArrayList<>(Pane.getClassCssMetaData());
-            styleables.addAll(getClassCssMetaData());
-            STYLEABLES = Collections.unmodifiableList(styleables);
-        }
-        return STYLEABLES;
+        return getClassCssMetaData();
     }
 
     public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {

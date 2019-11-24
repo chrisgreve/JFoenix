@@ -51,7 +51,10 @@ public class JFXToggleNodeSkin extends ToggleButtonSkin {
         super(toggleNode);
 
         selectionOverLay = new StackPane();
-        selectionOverLay.getChildren().add(getSkinnable().getGraphic());
+        final Node graphic = getSkinnable().getGraphic();
+        if (graphic != null) {
+            selectionOverLay.getChildren().add(graphic);
+        }
         selectionOverLay.shapeProperty().bind(getSkinnable().shapeProperty());
         selectionOverLay.setPickOnBounds(false);
 
@@ -107,12 +110,14 @@ public class JFXToggleNodeSkin extends ToggleButtonSkin {
         });
 
         toggleNode.focusedProperty().addListener((o, oldVal, newVal) -> {
-            if (newVal) {
-                if (!getSkinnable().isPressed()) {
-                    rippler.setOverlayVisible(true);
+            if (!toggleNode.isDisableVisualFocus()) {
+                if (newVal) {
+                    if (!getSkinnable().isPressed()) {
+                        rippler.setOverlayVisible(true);
+                    }
+                } else {
+                    rippler.setOverlayVisible(false);
                 }
-            } else {
-                rippler.setOverlayVisible(false);
             }
         });
         toggleNode.pressedProperty().addListener((o, oldVal, newVal) -> rippler.setOverlayVisible(false));
@@ -146,8 +151,8 @@ public class JFXToggleNodeSkin extends ToggleButtonSkin {
 
     @Override
     protected void layoutChildren(final double x, final double y, final double w, final double h) {
-        super.layoutChildren(x,y,w,h);
-        if(invalid){
+        super.layoutChildren(x, y, w, h);
+        if (invalid) {
             updateSelectionBackground();
             invalid = false;
         }

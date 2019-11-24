@@ -19,6 +19,7 @@
 
 package com.jfoenix.controls;
 
+import com.jfoenix.assets.JFoenixResources;
 import com.jfoenix.skins.JFXSpinnerSkin;
 import com.sun.javafx.css.converters.SizeConverter;
 import javafx.css.CssMetaData;
@@ -67,7 +68,7 @@ public class JFXSpinner extends ProgressIndicator {
      */
     @Override
     public String getUserAgentStylesheet() {
-        return getClass().getResource("/css/controls/jfx-spinner.css").toExternalForm();
+        return JFoenixResources.load("css/controls/jfx-spinner.css").toExternalForm();
     }
 
     /***************************************************************************
@@ -160,10 +161,7 @@ public class JFXSpinner extends ProgressIndicator {
         static {
             final List<CssMetaData<? extends Styleable, ?>> styleables =
                 new ArrayList<>(ProgressIndicator.getClassCssMetaData());
-            Collections.addAll(styleables,
-                RADIUS,
-                STARTING_ANGLE
-            );
+            Collections.addAll(styleables, RADIUS, STARTING_ANGLE);
             CHILD_STYLEABLES = Collections.unmodifiableList(styleables);
         }
     }

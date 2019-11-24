@@ -29,11 +29,10 @@ import com.sun.javafx.binding.ExpressionHelper;
 import com.sun.javafx.scene.control.skin.ComboBoxPopupControl;
 import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.util.StringConverter;
 
 import java.lang.reflect.Field;
@@ -66,8 +65,8 @@ public class JFXTimePickerSkin extends ComboBoxPopupControl<LocalTime> {
             changeListenersField.setAccessible(true);
             ChangeListener[] changeListeners = (ChangeListener[]) changeListenersField.get(value);
             // remove parent focus listener to prevent editor class cast exception
-            for(int i = changeListeners.length - 1; i > 0; i--){
-                if(changeListeners[i] != null && changeListeners[i].getClass().getName().contains("ComboBoxPopupControl")){
+            for (int i = changeListeners.length - 1; i > 0; i--) {
+                if (changeListeners[i] != null && changeListeners[i].getClass().getName().contains("ComboBoxPopupControl")) {
                     timePicker.focusedProperty().removeListener(changeListeners[i]);
                     break;
                 }
@@ -107,6 +106,7 @@ public class JFXTimePickerSkin extends ComboBoxPopupControl<LocalTime> {
         //dialog = new JFXDialog(null, content, transitionType, overlayClose)
         registerChangeListener(timePicker.converterProperty(), "CONVERTER");
         registerChangeListener(timePicker.valueProperty(), "VALUE");
+        registerChangeListener(timePicker.defaultColorProperty(), "DEFAULT_COLOR");
     }
 
     @Override
@@ -126,30 +126,30 @@ public class JFXTimePickerSkin extends ComboBoxPopupControl<LocalTime> {
             content.init();
             content.clearFocus();
         }
-        if (jfxTimePicker.isOverLay()) {
-            if (dialog == null) {
-                StackPane dialogParent = jfxTimePicker.getDialogParent();
-                if (dialogParent == null) {
-                    dialogParent = (StackPane) getSkinnable().getScene().getRoot();
-                }
-                dialog = new JFXDialog(dialogParent, (Region) getPopupContent(),
-                    DialogTransition.CENTER, true);
-                arrowButton.setOnMouseClicked((click) -> {
-                    if (jfxTimePicker.isOverLay()) {
-                        StackPane parent = jfxTimePicker.getDialogParent();
-                        if (parent == null) {
-                            parent = (StackPane) getSkinnable().getScene().getRoot();
-                        }
-                        dialog.show(parent);
-                    }
-                });
+        if (dialog == null && jfxTimePicker.isOverLay()) {
+            StackPane dialogParent = jfxTimePicker.getDialogParent();
+            if (dialogParent == null) {
+                dialogParent = (StackPane) jfxTimePicker.getScene().getRoot();
             }
+            dialog = new JFXDialog(dialogParent, (Region) getPopupContent(),
+                DialogTransition.CENTER, true);
+            arrowButton.setOnMouseClicked((click) -> {
+                if (jfxTimePicker.isOverLay()) {
+                    StackPane parent = jfxTimePicker.getDialogParent();
+                    if (parent == null) {
+                        parent = (StackPane) jfxTimePicker.getScene().getRoot();
+                    }
+                    dialog.show(parent);
+                }
+            });
         }
     }
 
     @Override
     protected void handleControlPropertyChanged(String p) {
-        if ("CONVERTER".equals(p)) {
+        if ("DEFAULT_COLOR".equals(p)) {
+            ((JFXTextField) getEditor()).setFocusColor(jfxTimePicker.getDefaultColor());
+        } else if ("CONVERTER".equals(p)) {
             updateDisplayNode();
         } else if ("EDITOR".equals(p)) {
             getEditableInputNode();

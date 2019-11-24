@@ -19,12 +19,11 @@
 
 package com.jfoenix.controls;
 
+import com.jfoenix.assets.JFoenixResources;
 import com.jfoenix.skins.JFXRadioButtonSkin;
 import com.sun.javafx.css.converters.BooleanConverter;
 import com.sun.javafx.css.converters.ColorConverter;
 import javafx.css.*;
-import javafx.scene.control.Control;
-import javafx.scene.control.Labeled;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Skin;
 import javafx.scene.paint.Color;
@@ -73,6 +72,15 @@ public class JFXRadioButton extends RadioButton {
         return new JFXRadioButtonSkin(this);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getUserAgentStylesheet() {
+        return USER_AGENT_STYLESHEET;
+    }
+
+
     private void initialize() {
         this.getStyleClass().add(DEFAULT_STYLE_CLASS);
     }
@@ -84,6 +92,7 @@ public class JFXRadioButton extends RadioButton {
      * this control.
      */
     private static final String DEFAULT_STYLE_CLASS = "jfx-radio-button";
+    private static final String USER_AGENT_STYLESHEET = JFoenixResources.load("css/controls/jfx-radio-button.css").toExternalForm();
 
     /**
      * default color used when the radio button is selected
@@ -147,6 +156,27 @@ public class JFXRadioButton extends RadioButton {
         this.disableVisualFocusProperty().set(disabled);
     }
 
+    /**
+     * disable animation on button action
+     */
+    private StyleableBooleanProperty disableAnimation = new SimpleStyleableBooleanProperty(JFXRadioButton.StyleableProperties.DISABLE_ANIMATION,
+        JFXRadioButton.this,
+        "disableAnimation",
+        false);
+
+    public final StyleableBooleanProperty disableAnimationProperty() {
+        return this.disableAnimation;
+    }
+
+    public final Boolean isDisableAnimation() {
+        return disableAnimation != null && this.disableAnimationProperty().get();
+    }
+
+    public final void setDisableAnimation(final Boolean disabled) {
+        this.disableAnimationProperty().set(disabled);
+    }
+
+
     private static class StyleableProperties {
         private static final CssMetaData<JFXRadioButton, Color> SELECTED_COLOR =
             new CssMetaData<JFXRadioButton, Color>("-jfx-selected-color",
@@ -187,33 +217,41 @@ public class JFXRadioButton extends RadioButton {
                     return control.disableVisualFocusProperty();
                 }
             };
+
+        private static final CssMetaData<JFXRadioButton, Boolean> DISABLE_ANIMATION =
+            new CssMetaData<JFXRadioButton, Boolean>("-jfx-disable-animation",
+                BooleanConverter.getInstance(), false) {
+                @Override
+                public boolean isSettable(JFXRadioButton control) {
+                    return control.disableAnimation == null || !control.disableAnimation.isBound();
+                }
+
+                @Override
+                public StyleableBooleanProperty getStyleableProperty(JFXRadioButton control) {
+                    return control.disableAnimationProperty();
+                }
+            };
+
+
         private static final List<CssMetaData<? extends Styleable, ?>> CHILD_STYLEABLES;
 
         static {
             final List<CssMetaData<? extends Styleable, ?>> styleables =
-                new ArrayList<>(Control.getClassCssMetaData());
+                new ArrayList<>(RadioButton.getClassCssMetaData());
             Collections.addAll(styleables,
                 SELECTED_COLOR,
                 UNSELECTED_COLOR,
-                DISABLE_VISUAL_FOCUS
+                DISABLE_VISUAL_FOCUS,
+                DISABLE_ANIMATION
             );
             CHILD_STYLEABLES = Collections.unmodifiableList(styleables);
         }
     }
 
-    // inherit the styleable properties from parent
-    private List<CssMetaData<? extends Styleable, ?>> STYLEABLES;
 
     @Override
     public List<CssMetaData<? extends Styleable, ?>> getControlCssMetaData() {
-        if (STYLEABLES == null) {
-            final List<CssMetaData<? extends Styleable, ?>> styleables =
-                new ArrayList<>(Control.getClassCssMetaData());
-            styleables.addAll(getClassCssMetaData());
-            styleables.addAll(Labeled.getClassCssMetaData());
-            STYLEABLES = Collections.unmodifiableList(styleables);
-        }
-        return STYLEABLES;
+        return getClassCssMetaData();
     }
 
     public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {
